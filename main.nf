@@ -60,12 +60,17 @@ log.info ""
 log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
+log.info " Centrifuge index         : ${params.centrifugeIndex}"
 log.info " ======================"
 log.info ""
  
 workflow.onComplete { 
 	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )
 }
+
+Channel
+	.fromPath(params.centrifugeIndex)
+	.set{ centrifugeIndex }
 
 Channel
     .fromPath( "${params.inputDir}/*.bam" )
@@ -94,8 +99,36 @@ process bamToFastq {
     	bamToFastq -i !{bam} -fq !{lane}.fq.gz
     else
 		echo "True"
-		bamToFastq -i !{bam} -fq !{lane}_1.fq.gz -fq2 !{lane}_1.fq.gz
+		bamToFastq -i !{bam} -fq !{lane}_1.fq.gz -fq2 !{lane}_2.fq.gz
     fi
     
     '''
+}
+
+process centrifuge {
+
+	tag { lane }
+    
+    container = 'docker://obenauflab/virusintegration:latest'
+
+    input:
+    set val(lane), val(paired), file(reads) from fastqFilesFromBam
+
+    output:
+    set val(lane), val(paired), file "*centrifuge_report.tsv" into centrifugeChannel
+
+    shell:
+    if( paired == 'True' )
+        '''
+	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} \
+	    	-1 !{reads[0]} -2 !{reads[1]} \ 
+	    	--report-file !{lane}_centrifuge_report.tsv > /dev/null
+	    '''
+    else
+        '''
+	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} \
+	    	-U !{reads} \ 
+	    	--report-file !{lane}_centrifuge_report.tsv > /dev/null
+	    '''
+
 }
