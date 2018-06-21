@@ -82,7 +82,7 @@ process bamToFastq {
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), env(paired), file("${lane}*.fq.gz") into fastqFilesFromBam
+    set val(lane), stdout, file("${lane}*.fq.gz") into fastqFilesFromBam
 
     shell:
     '''
