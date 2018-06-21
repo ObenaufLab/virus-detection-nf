@@ -120,13 +120,9 @@ process centrifuge {
     shell:
     '''
     if [ !{paired} -eq "True" ]; then
-	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} \
-	    	-1 !{reads[0]} -2 !{reads[1]} \ 
-	    	--report-file !{lane}_centrifuge_report.tsv > /dev/null
+	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_centrifuge_report.tsv > /dev/null
 	else
-	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} \
-	    	-U !{reads} \ 
-	    	--report-file !{lane}_centrifuge_report.tsv > /dev/null
+	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_centrifuge_report.tsv > /dev/null
 	fi
 	'''
 
