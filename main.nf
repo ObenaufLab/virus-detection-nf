@@ -95,10 +95,10 @@ process bamToFastq {
     paired=`samtools view -c -f 1 !{bam}`
     
     if [ $paired -eq "0" ]; then
-       	echo "False"
+       	printf "False"
     	bamToFastq -i !{bam} -fq !{lane}.fq.gz
     else
-		echo "True"
+		printf "True"
 		bamToFastq -i !{bam} -fq !{lane}_1.fq.gz -fq2 !{lane}_2.fq.gz
     fi
     
@@ -110,7 +110,7 @@ process centrifuge {
 	tag { lane }
     
     container = 'docker://obenauflab/virusintegration:latest'
-
+    
     input:
     set val(lane), val(paired), file(reads) from fastqFilesFromBam
 
@@ -118,12 +118,14 @@ process centrifuge {
     set val(lane), val(paired), file "*centrifuge_report.tsv" into centrifugeChannel
 
     shell:
-    '''
-    if [ !{paired} -eq "True" ]; then
+
+    if( paired == 'True' )
+        '''
 	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_centrifuge_report.tsv > /dev/null
-	else
+	    '''
+    else
+        '''
 	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_centrifuge_report.tsv > /dev/null
-	fi
-	'''
+	    '''
 
 }
