@@ -89,7 +89,7 @@ process bamToFastq {
     
     paired=`samtools view -c -f 1 !{bam}`
     
-    if $paired == 0; then
+    if $paired == "0"; then
     	echo $paired
     	paired=False
     	bamToFastq -i !{bam} -fq !{lane}.fq.gz
