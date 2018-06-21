@@ -82,19 +82,22 @@ process bamToFastq {
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), file("${lane}.fastq.gz") into fastqFilesFromBam
+    set val(lane), env(paired), file("${lane}*.fq.gz") into fastqFilesFromBam
 
     shell:
     '''
     
-    PAIRED=`samtools view -c -f 1 !{bam}`
+    paired=`samtools view -c -f 1 !{bam}`
     
-    if $PAIRED == 0; then
-    	echo "MUAHAHAHA"
+    if $paired == 0; then
+    	echo $paired
+    	paired=False
+    	bamToFastq -i !{bam} -fq !{lane}.fq.gz
     else
-    	echo "NOOOO"
+    	echo $paired
+    	paired=True
+		bamToFastq -i !{bam} -fq !{lane}_1.fq.gz -fq2 !{lane}_1.fq.gz
     fi
     
-    #samtools fastq ${bam} | gzip -c > ${lane}.fastq.gz
     '''
 }
