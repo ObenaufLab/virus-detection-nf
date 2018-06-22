@@ -131,7 +131,7 @@ process salmon {
     set val(lane), val(paired), file(reads) from fastqFilesFromBamSalmon
 
     output:
-    file ("*centrifuge_report.tsv") into salmonChannel
+    file ("${lane}_salmon") into salmonChannel
 
     shell:
 
