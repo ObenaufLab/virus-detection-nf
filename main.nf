@@ -61,16 +61,13 @@ log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
 log.info " Centrifuge index         : ${params.centrifugeIndex}"
+log.info " Salmon index             : ${params.salmonIndex}"
 log.info " ======================"
 log.info ""
  
 workflow.onComplete { 
 	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )
 }
-
-Channel
-	.fromPath(params.centrifugeIndex)
-	.set{ centrifugeIndex }
 
 Channel
     .fromPath( "${params.inputDir}/*.bam" )
@@ -81,13 +78,11 @@ process bamToFastq {
 
     tag { lane }
     
-    container = 'docker://obenauflab/virusintegration:latest'
-
     input:
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), stdout, file("${lane}*.fq.gz") into fastqFilesFromBam
+    set val(lane), stdout, file("${lane}*.fq.gz") into fastqFilesFromBamCentrifuge, fastqFilesFromBamSalmon
 
     shell:
     '''
@@ -108,14 +103,12 @@ process bamToFastq {
 process centrifuge {
 
 	tag { lane }
-    
-    container = 'docker://obenauflab/virusintegration:latest'
-    
+        
     input:
-    set val(lane), val(paired), file(reads) from fastqFilesFromBam
+    set val(lane), val(paired), file(reads) from fastqFilesFromBamCentrifuge
 
     output:
-    set val(lane), val(paired), file "*centrifuge_report.tsv" into centrifugeChannel
+    file ("*centrifuge_report.tsv") into centrifugeChannel
 
     shell:
 
@@ -126,6 +119,29 @@ process centrifuge {
     else
         '''
 	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_centrifuge_report.tsv > /dev/null
+	    '''
+
+}
+
+process salmon {
+
+	tag { lane }
+        
+    input:
+    set val(lane), val(paired), file(reads) from fastqFilesFromBamSalmon
+
+    output:
+    file ("*centrifuge_report.tsv") into salmonChannel
+
+    shell:
+
+    if( paired == 'True' )
+        '''
+	    salmon quant -i !{params.salmonIndex} -l A -1 !{reads[0]} -2 !{reads[1]} -o !{lane}_salmon -p !{task.cpus}
+	    '''
+    else
+        '''
+	    salmon quant -i !{params.salmonIndex} -l A -r !{reads} -o !{lane}_salmon -p !{task.cpus}
 	    '''
 
 }
