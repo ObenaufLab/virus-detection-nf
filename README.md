@@ -24,7 +24,7 @@ nextflow pull obenauflab/virus-detection-nf
 The workflow consists of 3 steps:
 
 * Centrifuge: Detection and quantification of presence of viral sequences in the overall dataset
-* STAR(?) + Manta: Alignment of the data to the human genome + detected viral genomes to determine integration sites
+* BWA + Manta: Alignment of the data to the human genome + detected viral genomes to determine integration sites
 * Sailfish: Collect and quantify splice-variants in the dataset. 
 
 ```bash
@@ -37,5 +37,7 @@ nextflow run obenauflab/virus-detection-nf --help
 [Singularity](https://singularity.lbl.gov): Singularityware
 
 [Centrifuge](https://ccb.jhu.edu/software/centrifuge/): Daehwan Kim, Salzberg Lab
+
+[bwa](http://bio-bwa.sourceforge.net/): Hl3
 
 [Sailfish](https://github.com/kingsfordgroup/sailfish) - Kingsford Group

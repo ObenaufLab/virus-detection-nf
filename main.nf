@@ -82,7 +82,7 @@ process bamToFastq {
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), stdout, file("${lane}*.fq.gz") into fastqFilesFromBamCentrifuge, fastqFilesFromBamSalmon
+    set val(lane), stdout, file("${lane}*.fq.gz") into fastqFilesFromBamCentrifuge, fastqFilesFromBamSalmon, fastqFilesFromBwa
 
     shell:
     '''
@@ -144,4 +144,57 @@ process salmon {
 	    salmon quant -i !{params.salmonIndex} -l A -r !{reads} -o !{lane}_salmon -p !{task.cpus}
 	    '''
 
+}
+
+process bwa {
+
+	tag { lane }
+        
+    input:
+    set val(lane), val(paired), file(reads) from fastqFilesFromBwa
+
+    output:
+    set val(lane), file ("${lane}.bwa*") into bwaChannel
+
+    shell:
+    
+    if (task.cpus > 8) {
+    	bwaThreads = task.cpus / 4
+    	sortThreads = task.cpus - bwaThreads
+    } else {
+    	bwaThreads = task.cpus
+    	sortThreads = 1
+    }
+   
+    '''
+    bwa mem -M -R '@RG\tID:!{lane}\tPL:illumina\tSM:!{lane}' -t !{bwaThreads} !{params.bwaIndex} !{reads} \
+    	samtools view -b - | samtools sort -@ !{sortThreads} -o !{lane}.bwa.bam
+    	
+    samtools index !{lane}.bwa.bam
+    
+    samtools idxstats !{lane}.bwa.stats
+    '''
+}
+
+process manta {
+
+	tag { parameters.name }
+		     
+    input:
+    set val(lane), file(bwa) from bwaChannel
+    
+    output:
+    file ("manta") into outManta
+    
+    shell:
+    '''
+        
+    shopt -s expand_aliases
+    
+    configManta.py --bam !{bwa[0]} \
+    			   --referenceFasta !{params.ref} \
+    			   --runDir manta    			   
+    ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
+	
+    '''
 }
