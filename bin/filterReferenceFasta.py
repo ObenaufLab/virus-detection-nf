@@ -32,6 +32,8 @@ fasta_sequences = SeqIO.parse(open(args.fastaFile),'fasta')
 for fasta in fasta_sequences:
     
     id, seq = fasta.id, str(fasta.seq)
+    
+    id = id.replace(",", "_")
         
     if id in chromosomes:
         duplicates[id] = 1
@@ -50,7 +52,9 @@ fasta_sequences = SeqIO.parse(open(args.fastaFile),'fasta')
 
 for fasta in fasta_sequences:
     
-    id, seq = fasta.id, fasta.seq.tostring()
+    id, seq = fasta.id, str(fasta.seq)
+    
+    id = id.replace(",", "_")
     
     if id in duplicates:
         print(">" + id + "_" + str(duplicates[id]))
