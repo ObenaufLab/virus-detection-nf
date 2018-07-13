@@ -173,7 +173,7 @@ process bwa {
     	
     samtools index !{lane}.bwa.bam
     
-    samtools idxstats !{lane}.bwa.bam > !{lane}.bwa.stats
+    #samtools idxstats !{lane}.bwa.bam > !{lane}.bwa.stats
     '''
 }
 
