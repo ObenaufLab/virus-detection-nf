@@ -62,6 +62,7 @@ log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
 log.info " Centrifuge index         : ${params.centrifugeIndex}"
 log.info " Salmon index             : ${params.salmonIndex}"
+log.info " bwa index                : ${params.bwaIndex}"
 log.info " ======================"
 log.info ""
  
@@ -184,7 +185,7 @@ process manta {
     set val(lane), file(bwa) from bwaChannel
     
     output:
-    file ("manta") into outManta
+    file ("manta/results/variants/*") into outManta
     
     shell:
     '''
@@ -192,7 +193,7 @@ process manta {
     shopt -s expand_aliases
     
     configManta.py --bam !{bwa[0]} \
-    			   --referenceFasta !{params.ref} \
+    			   --referenceFasta !{params.bwaIndex} \
     			   --runDir manta    			   
     ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
 	
