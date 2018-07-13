@@ -173,13 +173,13 @@ process bwa {
     	
     samtools index !{lane}.bwa.bam
     
-    #samtools idxstats !{lane}.bwa.bam > !{lane}.bwa.stats
+    samtools idxstats !{lane}.bwa.bam > !{lane}.bwa.stats
     '''
 }
 
 process manta {
 
-	tag { parameters.name }
+	tag { lane }
 		     
     input:
     set val(lane), file(bwa) from bwaChannel
