@@ -168,7 +168,7 @@ process bwa {
     }
    
     '''
-    bwa mem -M -R '@RG\tID:!{lane}\tPL:illumina\tSM:!{lane}' -t !{bwaThreads} !{params.bwaIndex} !{reads} \
+    bwa mem -M -R '@RG\tID:!{lane}\tPL:illumina\tSM:!{lane}' -t !{bwaThreads} !{params.bwaIndex} !{reads} | \
     	samtools view -b - | samtools sort -@ !{sortThreads} -o !{lane}.bwa.bam
     	
     samtools index !{lane}.bwa.bam
