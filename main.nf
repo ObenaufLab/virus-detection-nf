@@ -160,7 +160,7 @@ process bwa {
     shell:
     
     if (task.cpus > 8) {
-    	bwaThreads = task.cpus / 4
+    	bwaThreads = task.cpus / 4 * 3
     	sortThreads = task.cpus - bwaThreads
     } else {
     	bwaThreads = task.cpus
