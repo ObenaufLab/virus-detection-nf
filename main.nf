@@ -132,7 +132,7 @@ process salmon {
     set val(lane), val(paired), file(reads) from fastqFilesFromBamSalmon
 
     output:
-    file ("${lane}_salmon") into salmonChannel
+    file ("${lane}_salmon/quant.sf") into salmonChannel
 
     shell:
 
