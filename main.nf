@@ -83,7 +83,7 @@ process bamToFastq {
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), stdout, file("${lane}*.fq.gz") into fastqFilesFromBamCentrifuge, fastqFilesFromBamSalmon, fastqFilesFromBwa
+    set val(lane), stdout, file("${lane}*.fq") into fastqFilesFromBamCentrifuge, fastqFilesFromBamSalmon, fastqFilesFromBwa
 
     shell:
     '''
@@ -92,10 +92,10 @@ process bamToFastq {
     
     if [ $paired -eq "0" ]; then
        	printf "False"
-    	bamToFastq -i !{bam} -fq !{lane}.fq.gz
+    	bamToFastq -i !{bam} -fq !{lane}.fq
     else
 		printf "True"
-		bamToFastq -i !{bam} -fq !{lane}_1.fq.gz -fq2 !{lane}_2.fq.gz
+		bamToFastq -i !{bam} -fq !{lane}_1.fq -fq2 !{lane}_2.fq
     fi
     
     '''
