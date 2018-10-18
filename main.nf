@@ -68,7 +68,7 @@ workflow.onComplete {
 }
 
 Channel
-    .fromPath( "${params.inputDir}/*.bam" )
+    .fromPath( "${params.inputDir}/*/*.bam" )
     .map { file -> tuple( file.baseName, file ) }
     .set { rawBamFiles }
     
@@ -80,7 +80,7 @@ process bamToFastq {
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), stdout, file("${lane}*.fq.gz") into out
+    set val(lane), file("${lane}*.fq.gz") into out
 
     shell:
     '''
@@ -88,10 +88,8 @@ process bamToFastq {
     paired=`samtools view -c -f 1 !{bam}`
     
     if [ $paired -eq "0" ]; then
-       	printf "False"
     	bamToFastq -i !{bam} -fq !{lane}.fq
     else
-		printf "True"
 		bamToFastq -i !{bam} -fq !{lane}_1.fq -fq2 !{lane}_2.fq
 		gzip !{lane}_1.fq !{lane}_2.fq
     fi
