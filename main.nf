@@ -60,9 +60,6 @@ log.info ""
 log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
-log.info " Centrifuge index         : ${params.centrifugeIndex}"
-log.info " Salmon index             : ${params.salmonIndex}"
-log.info " bwa index                : ${params.bwaIndex}"
 log.info " ======================"
 log.info ""
  
@@ -83,7 +80,7 @@ process bamToFastq {
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), stdout, file("${lane}*.fq") into fastqFilesFromBamCentrifuge, fastqFilesFromBamSalmon, fastqFilesFromBwa
+    set val(lane), stdout, file("${lane}*.fq.gz") into out
 
     shell:
     '''
@@ -96,106 +93,8 @@ process bamToFastq {
     else
 		printf "True"
 		bamToFastq -i !{bam} -fq !{lane}_1.fq -fq2 !{lane}_2.fq
+		gzip !{lane}_1.fq !{lane}_2.fq
     fi
     
-    '''
-}
-
-process centrifuge {
-
-	tag { lane }
-        
-    input:
-    set val(lane), val(paired), file(reads) from fastqFilesFromBamCentrifuge
-
-    output:
-    file ("*centrifuge_report.tsv") into centrifugeChannel
-
-    shell:
-
-    if( paired == 'True' )
-        '''
-	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_centrifuge_report.tsv > /dev/null
-	    '''
-    else
-        '''
-	    centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_centrifuge_report.tsv > /dev/null
-	    '''
-
-}
-
-process salmon {
-
-	tag { lane }
-        
-    input:
-    set val(lane), val(paired), file(reads) from fastqFilesFromBamSalmon
-
-    output:
-    file ("${lane}_salmon/quant.sf") into salmonChannel
-
-    shell:
-
-    if( paired == 'True' )
-        '''
-	    salmon quant -i !{params.salmonIndex} -l A -1 !{reads[0]} -2 !{reads[1]} -o !{lane}_salmon -p !{task.cpus}
-	    '''
-    else
-        '''
-	    salmon quant -i !{params.salmonIndex} -l A -r !{reads} -o !{lane}_salmon -p !{task.cpus}
-	    '''
-
-}
-
-process bwa {
-
-	tag { lane }
-        
-    input:
-    set val(lane), val(paired), file(reads) from fastqFilesFromBwa
-
-    output:
-    set val(lane), file ("${lane}.bwa*") into bwaChannel
-
-    shell:
-    
-    if (task.cpus > 8) {
-    	bwaThreads = task.cpus / 4 * 3
-    	sortThreads = task.cpus - bwaThreads
-    } else {
-    	bwaThreads = task.cpus
-    	sortThreads = 1
-    }
-   
-    '''
-    bwa mem -M -R '@RG\\tID:!{lane}\\tPL:illumina\\tSM:!{lane}' -t !{bwaThreads} !{params.bwaIndex} !{reads} | \
-    	samtools view -b - | samtools sort -@ !{sortThreads} -o !{lane}.bwa.bam
-    	
-    samtools index !{lane}.bwa.bam
-    
-    samtools idxstats !{lane}.bwa.bam > !{lane}.bwa.stats
-    '''
-}
-
-process manta {
-
-	tag { lane }
-		     
-    input:
-    set val(lane), file(bwa) from bwaChannel
-    
-    output:
-    file ("manta/results/variants/*") into outManta
-    
-    shell:
-    '''
-        
-    shopt -s expand_aliases
-    
-    configManta.py --bam !{bwa[0]} \
-    			   --referenceFasta !{params.bwaIndex} \
-    			   --runDir manta    			   
-    ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
-	
     '''
 }
