@@ -88,10 +88,9 @@ process bamToFastq {
     paired=`samtools view -c -f 1 !{bam}`
     
     if [ $paired -eq "0" ]; then
-    	bamToFastq -i !{bam} -fq !{lane}.fq
+    	samtools fastq -s !{lane}.fq.gz
     else
-		bamToFastq -i !{bam} -fq !{lane}_1.fq -fq2 !{lane}_2.fq
-		gzip !{lane}_1.fq !{lane}_2.fq
+    	samtools fastq -1 !{lane}_1.fq.gz -2 !{lane}_2.fq.gz
     fi
     
     '''
