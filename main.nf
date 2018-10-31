@@ -90,7 +90,7 @@ process bamToFastq {
     if [ $paired -eq "0" ]; then
     	samtools fastq -@ !{task.cpus} -c 6 -s !{lane}.fq.gz !{bam}
     else
-	samtools collate -O -u -@ !{task.cpus} !{bam} $(mktemp) | samtools fastq -1 !{lane}_1.fq.gz -2 !{lane}_2.fq.gz -F 256 -n -c 6 -@ !{task.cpus} -
+	samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq.gz -2 !{lane}_2.fq.gz -n -c 6 -@ !{task.cpus} -
     fi
     
     '''
