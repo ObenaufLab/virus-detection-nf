@@ -74,18 +74,18 @@ SERegex = params.inputDir + "/*[!12].fq.gz"
 pairFiles = Channel.fromFilePairs(pairedEndRegex)
 singleFiles = Channel.fromFilePairs(SERegex, size: 1){ file -> file.baseName.replaceAll(/.fq/,"") }
 
-readsChannel  = singleFiles.mix(pairFiles)
+singleFiles.mix(pairFiles)
+.into { fastqPaVEChannel; fastqRefseqChannel; fastqENAChannel }
     
-
-process centrifuge {
+process centrifugePaVE {
 
 	tag { lane }
 
     input:
-    set val(lane), file(reads) from readsChannel
+    set val(lane), file(reads) from fastqPaVEChannel
 
     output:
-    file ("*centrifuge_report.tsv") into centrifugeChannel
+    file ("*_PaVE_centrifuge_report.tsv") into PaVEChannel
 
     shell:
     
@@ -95,7 +95,7 @@ process centrifuge {
     
         '''
         
-		centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{params.PaVEIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
 
         '''
     
@@ -103,8 +103,69 @@ process centrifuge {
     
         '''
         
-		centrifuge -x !{params.centrifugeIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{params.PaVEIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
 
         '''
+}
 
+process centrifugeRefSeq {
+
+	tag { lane }
+
+    input:
+    set val(lane), file(reads) from fastqRefseqChannel
+
+    output:
+    file ("*_refseq_centrifuge_report.tsv") into refseqChannel
+
+    shell:
+    
+    def single = reads instanceof Path
+    
+	if (!single)
+    
+        '''
+        
+		centrifuge -x !{params.refseqIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
+
+        '''
+    
+    else 
+    
+        '''
+        
+		centrifuge -x !{params.refseqIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
+
+        '''
+}
+
+process centrifugeENA {
+
+	tag { lane }
+
+    input:
+    set val(lane), file(reads) from fastqENAChannel
+
+    output:
+    file ("*_ENA_centrifuge_report.tsv") into ENAChannel
+
+    shell:
+    
+    def single = reads instanceof Path
+    
+	if (!single)
+    
+        '''
+        
+		centrifuge -x !{params.ENAIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
+
+        '''
+    
+    else 
+    
+        '''
+        
+		centrifuge -x !{params.ENAIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
+
+        '''
 }
