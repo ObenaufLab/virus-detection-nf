@@ -27,21 +27,21 @@
 def helpMessage() {
     log.info"""
     ================================================================
-    virus-detection-nf
+    virus-detection-nf centrifuge
     ================================================================
     DESCRIPTION
     Usage:
-    nextflow run obenauflab/virus-detection-nf
+    nextflow run obenauflab/virus-detection-nf -r centrifuge
     Options:
         --inputDir        	Input directory of bam files.
+        --output        	Output folder for centrifuge reports.
 
     Profiles:
         standard            local execution
-        sge			        SGE execution with singularity on IMPIMBA1
-        ii2                 SLURM execution with singularity on IMPIMBA2
+        slurm			    SLURM execution with singularity on IMPIMBA2
+        awsbatch            AWS batch execution
         
     Docker:
-    combinelab/salmon:0.8.1
     obenauflab/virusintegration:latest
     
     Author:
@@ -60,7 +60,7 @@ log.info ""
 log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
-log.info " Centrifuge index         : ${params.centrifugeIndex}"
+log.info " output directory         : ${params.output}"
 log.info " ======================"
 log.info ""
  
