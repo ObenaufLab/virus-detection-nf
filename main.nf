@@ -91,7 +91,7 @@ process centrifugePaVE {
 
     input:
     set val(lane), file(reads) from fastqPaVEChannel
-    file index from PaVEIndex
+    file index from PaVEIndex.first()
     
 
     output:
@@ -124,7 +124,7 @@ process centrifugeRefSeq {
 
     input:
     set val(lane), file(reads) from fastqRefseqChannel
-    file index from RefseqIndex
+    file index from RefseqIndex.first()
 
     output:
     file ("*_refseq_centrifuge_report.tsv") into refseqChannel
@@ -156,7 +156,7 @@ process centrifugeENA {
 
     input:
     set val(lane), file(reads) from fastqENAChannel
-    file index from ENAIndex
+    file index from ENAIndex.first()
 
     output:
     file ("*_ENA_centrifuge_report.tsv") into ENAChannel
