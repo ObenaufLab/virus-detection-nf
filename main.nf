@@ -32,6 +32,7 @@ def helpMessage() {
     DESCRIPTION
     Usage:
     nextflow run obenauflab/virus-detection-nf -r TCGAconversion
+    
     Options:
         --inputDir        	Input directory of bam files.
         --output        	Output folder for converted fastq files.
@@ -63,10 +64,6 @@ log.info " input directory          : ${params.inputDir}"
 log.info " output directory         : ${params.output}"
 log.info " ======================"
 log.info ""
- 
-workflow.onComplete { 
-	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )
-}
 
 Channel
     .fromPath( "${params.inputDir}/*/*.bam" )
@@ -95,4 +92,15 @@ process bamToFastq {
     fi
     
     '''
+}
+
+workflow.onComplete { 
+	RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    NC='\033[0m'
+
+    log.info "\nobenauflab/virus-detection has finished."
+    log.info "Status:   " + (workflow.success ? "${GREEN}SUCCESS${NC}" : "${RED}ERROR${NC}")
+    log.info "Time:     ${workflow.complete}"
+    log.info "Duration: ${workflow.duration}\n"
 }
