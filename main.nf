@@ -72,6 +72,18 @@ singleFiles = Channel.fromFilePairs(SERegex, size: 1){ file -> file.baseName.rep
 
 singleFiles.mix(pairFiles)
 .into { fastqPaVEChannel; fastqRefseqChannel; fastqENAChannel }
+
+PaVEIndex = Channel
+	.fromPath(params.PaVEIndex)
+	.ifEmpty { exit 1, "PaVE index not found: ${params.PaVEIndex}" }
+	
+RefseqIndex = Channel
+	.fromPath(params.refseqIndex)
+	.ifEmpty { exit 1, "Refseq index not found: ${params.refseqIndex}" }
+	
+ENAIndex = Channel
+	.fromPath(params.ENAIndex)
+	.ifEmpty { exit 1, "ENA index not found: ${params.ENAIndex}" }
     
 process centrifugePaVE {
 
@@ -79,6 +91,8 @@ process centrifugePaVE {
 
     input:
     set val(lane), file(reads) from fastqPaVEChannel
+    file index from PaVEIndex
+    
 
     output:
     file ("*_PaVE_centrifuge_report.tsv") into PaVEChannel
@@ -91,7 +105,7 @@ process centrifugePaVE {
     
         '''
         
-		centrifuge -x !{params.PaVEIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{index}/obenauf_PaVE_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
 
         '''
     
@@ -99,7 +113,7 @@ process centrifugePaVE {
     
         '''
         
-		centrifuge -x !{params.PaVEIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{index}/obenauf_PaVE_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
 
         '''
 }
@@ -110,6 +124,7 @@ process centrifugeRefSeq {
 
     input:
     set val(lane), file(reads) from fastqRefseqChannel
+    file index from RefseqIndex
 
     output:
     file ("*_refseq_centrifuge_report.tsv") into refseqChannel
@@ -122,7 +137,7 @@ process centrifugeRefSeq {
     
         '''
         
-		centrifuge -x !{params.refseqIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
 
         '''
     
@@ -130,7 +145,7 @@ process centrifugeRefSeq {
     
         '''
         
-		centrifuge -x !{params.refseqIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
 
         '''
 }
@@ -141,6 +156,7 @@ process centrifugeENA {
 
     input:
     set val(lane), file(reads) from fastqENAChannel
+    file index from ENAIndex
 
     output:
     file ("*_ENA_centrifuge_report.tsv") into ENAChannel
@@ -153,7 +169,7 @@ process centrifugeENA {
     
         '''
         
-		centrifuge -x !{params.ENAIndex} -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
 
         '''
     
@@ -161,7 +177,7 @@ process centrifugeENA {
     
         '''
         
-		centrifuge -x !{params.ENAIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
+		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
 
         '''
 }
