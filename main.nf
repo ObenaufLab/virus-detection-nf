@@ -34,7 +34,7 @@ def helpMessage() {
     nextflow run obenauflab/virus-detection-nf -r centrifuge
     Options:
         --inputDir        	Input directory of fastq files.
-        --output        	Output folder for centrifuge reports.
+        --outputDir        	Output folder for centrifuge reports.
 
     Profiles:
         standard            local execution
@@ -60,13 +60,9 @@ log.info ""
 log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
-log.info " output directory         : ${params.output}"
+log.info " output directory         : ${params.outputDir}"
 log.info " ======================"
 log.info ""
- 
-workflow.onComplete { 
-	println ( workflow.success ? "Done!" : "Oops .. something went wrong" )
-}
 
 pairedEndRegex = params.inputDir + "/*_{1,2}.fq.gz"
 SERegex = params.inputDir + "/*[!12].fq.gz"
@@ -168,4 +164,15 @@ process centrifugeENA {
 		centrifuge -x !{params.ENAIndex} -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
 
         '''
+}
+
+workflow.onComplete { 
+	RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    NC='\033[0m'
+
+    log.info "\nobenauflab/virus-detection has finished."
+    log.info "Status:   " + (workflow.success ? "${GREEN}SUCCESS${NC}" : "${RED}ERROR${NC}")
+    log.info "Time:     ${workflow.complete}"
+    log.info "Duration: ${workflow.duration}\n"
 }
