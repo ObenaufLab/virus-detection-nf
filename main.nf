@@ -31,17 +31,17 @@ def helpMessage() {
     ================================================================
     DESCRIPTION
     Usage:
-    nextflow run obenauflab/virus-detection-nf
+    nextflow run obenauflab/virus-detection-nf -r TCGAconversion
     Options:
         --inputDir        	Input directory of bam files.
+        --output        	Output folder for converted fastq files.
 
     Profiles:
         standard            local execution
-        sge			        SGE execution with singularity on IMPIMBA1
         ii2                 SLURM execution with singularity on IMPIMBA2
+        aws                 SLURM execution with singularity on IMPIMBA2
         
     Docker:
-    combinelab/salmon:0.8.1
     obenauflab/virusintegration:latest
     
     Author:
@@ -60,6 +60,7 @@ log.info ""
 log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
+log.info " output directory         : ${params.output}"
 log.info " ======================"
 log.info ""
  
