@@ -33,7 +33,7 @@ def helpMessage() {
     Usage:
     nextflow run obenauflab/virus-detection-nf -r centrifuge
     Options:
-        --inputDir        	Input directory of bam files.
+        --inputDir        	Input directory of fastq files.
         --output        	Output folder for centrifuge reports.
 
     Profiles:
