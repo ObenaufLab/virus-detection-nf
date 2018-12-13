@@ -76,14 +76,6 @@ singleFiles.mix(pairFiles)
 PaVEIndex = Channel
 	.fromPath(params.PaVEIndex)
 	.ifEmpty { exit 1, "PaVE index not found: ${params.PaVEIndex}" }
-	
-RefseqIndex = Channel
-	.fromPath(params.refseqIndex)
-	.ifEmpty { exit 1, "Refseq index not found: ${params.refseqIndex}" }
-	
-ENAIndex = Channel
-	.fromPath(params.ENAIndex)
-	.ifEmpty { exit 1, "ENA index not found: ${params.ENAIndex}" }
     
 process centrifugePaVE {
 
@@ -114,70 +106,6 @@ process centrifugePaVE {
         '''
         
 		centrifuge -x !{index}/obenauf_PaVE_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
-
-        '''
-}
-
-process centrifugeRefSeq {
-
-	tag { lane }
-
-    input:
-    set val(lane), file(reads) from fastqRefseqChannel
-    file index from RefseqIndex.first()
-
-    output:
-    file ("*_refseq_centrifuge_report.tsv") into refseqChannel
-
-    shell:
-    
-    def single = reads instanceof Path
-    
-	if (!single)
-    
-        '''
-        
-		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
-
-        '''
-    
-    else 
-    
-        '''
-        
-		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
-
-        '''
-}
-
-process centrifugeENA {
-
-	tag { lane }
-
-    input:
-    set val(lane), file(reads) from fastqENAChannel
-    file index from ENAIndex.first()
-
-    output:
-    file ("*_ENA_centrifuge_report.tsv") into ENAChannel
-
-    shell:
-    
-    def single = reads instanceof Path
-    
-	if (!single)
-    
-        '''
-        
-		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
-
-        '''
-    
-    else 
-    
-        '''
-        
-		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
 
         '''
 }
