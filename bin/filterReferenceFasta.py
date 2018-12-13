@@ -14,7 +14,7 @@ version = "1.0"
 # Main Parsers
 parser = ArgumentParser(description=usage, formatter_class=RawDescriptionHelpFormatter, version=version)
 
-parser.add_argument("-f", "--fasta", type=str, required=True, dest="fastaFile", help="Fasta file to design guides from")
+parser.add_argument("-f", "--fasta", type=str, required=True, dest="fastaFile", help="Fasta file")
 
 args = parser.parse_args()
 
