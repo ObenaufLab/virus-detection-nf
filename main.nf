@@ -31,11 +31,11 @@ def helpMessage() {
     ================================================================
     DESCRIPTION
     Usage:
-    nextflow run obenauflab/virus-detection-nf -r manta
+    nextflow run obenauflab/virus-detection-nf -r salmon
     
     Options:
         --inputDir        	Input directory of fastq files.
-        --outputDir        	Output folder for SV vcf files.
+        --outputDir        	Output folder for salmon quantification files.
 
     Profiles:
         standard            local execution
@@ -43,7 +43,7 @@ def helpMessage() {
         aws                 SLURM execution with singularity on IMPIMBA2
         
     Docker:
-    obenauflab/virusintegration:latest
+    quay.io/biocontainers/salmon:0.12.0--h86b0361_1
     
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
@@ -65,33 +65,47 @@ log.info " output directory         : ${params.output}"
 log.info " ======================"
 log.info ""
 
-Channel
-    .fromPath( "${params.inputDir}/*/*.bam" )
-    .map { file -> tuple( file.baseName, file ) }
-    .set { rawBamFiles }
-    
-process bamToFastq {
+log.info ""
+log.info " parameters "
+log.info " ======================"
+log.info " input directory          : ${params.inputDir}"
+log.info " output directory         : ${params.outputDir}"
+log.info " ======================"
+log.info ""
 
-    tag { lane }
-    
+pairedEndRegex = params.inputDir + "/*_{1,2}.fq.gz"
+SERegex = params.inputDir + "/*[!12].fq.gz"
+
+pairFiles = Channel.fromFilePairs(pairedEndRegex)
+singleFiles = Channel.fromFilePairs(SERegex, size: 1){ file -> file.baseName.replaceAll(/.fq/,"") }
+
+singleFiles.mix(pairFiles)
+.set { fastqChannel }
+
+process salmon {
+
+	tag { lane }
+        
     input:
-    set val(lane), file(bam) from rawBamFiles
+    set val(lane), file(reads) from fastqChannel
 
     output:
-    set val(lane), file("${lane}*.fq.gz") into out
+    file ("${lane}_salmon/quant.sf") into salmonChannel
 
     shell:
-    '''
     
-    paired=`samtools view -c -f 1 !{bam}`
+    def single = reads instanceof Path
     
-    if [ $paired -eq "0" ]; then
-    	samtools fastq -@ !{task.cpus} -c 6 -s !{lane}.fq.gz !{bam}
+    if (!single)
+
+        '''
+	    salmon quant -i !{params.salmonIndex} -l A -1 !{reads[0]} -2 !{reads[1]} -o !{lane}_salmon -p !{task.cpus}
+	    '''
     else
-		samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq.gz -2 !{lane}_2.fq.gz -n -c 6 -@ !{task.cpus} -
-    fi
-    
-    '''
+        '''
+	    salmon quant -i !{params.salmonIndex} -l A -r !{reads} -o !{lane}_salmon -p !{task.cpus}
+	    '''
+
 }
 
 workflow.onComplete { 
