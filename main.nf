@@ -31,11 +31,11 @@ def helpMessage() {
     ================================================================
     DESCRIPTION
     Usage:
-    nextflow run obenauflab/virus-detection-nf -r TCGAconversion
+    nextflow run obenauflab/virus-detection-nf -r manta
     
     Options:
-        --inputDir        	Input directory of bam files.
-        --output        	Output folder for converted fastq files.
+        --inputDir        	Input directory of fastq files.
+        --outputDir        	Output folder for SV vcf files.
 
     Profiles:
         standard            local execution
