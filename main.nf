@@ -82,12 +82,17 @@ singleFiles = Channel.fromFilePairs(SERegex, size: 1){ file -> file.baseName.rep
 singleFiles.mix(pairFiles)
 .set { fastqChannel }
 
+indexChannel = Channel
+	.fromPath(params.salmonIndex)
+	.ifEmpty { exit 1, "Salmon index not found: ${params.salmonIndex}" }
+
 process salmon {
 
 	tag { lane }
         
     input:
     set val(lane), file(reads) from fastqChannel
+    file index from PaVEIndex.first()
 
     output:
     file ("${lane}_salmon/quant.sf") into salmonChannel
@@ -99,11 +104,11 @@ process salmon {
     if (!single)
 
         '''
-	    salmon quant -i !{params.salmonIndex} -l A -1 !{reads[0]} -2 !{reads[1]} -o !{lane}_salmon -p !{task.cpus}
+	    salmon quant -i !{index} -l A -1 !{reads[0]} -2 !{reads[1]} -o !{lane}_salmon -p !{task.cpus}
 	    '''
     else
         '''
-	    salmon quant -i !{params.salmonIndex} -l A -r !{reads} -o !{lane}_salmon -p !{task.cpus}
+	    salmon quant -i !{index} -l A -r !{reads} -o !{lane}_salmon -p !{task.cpus}
 	    '''
 
 }
