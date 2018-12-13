@@ -107,7 +107,7 @@ process centrifugePaVE {
         '''
         
 		centrifuge -x !{index}/obenauf_PaVE_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_PaVE_centrifuge_report.tsv > readwise.txt
-		centrifuge-kreport -x !{index}/obenauf_PaVE_index readwise.txt > !{lane}_PaVE_kreport.out
+		centrifuge-kreport -x !{index}/obenauf_PaVE_index readwise.txt > !{lane}_PaVE_kreport.out 2> /dev/null
 
         '''
     
@@ -116,7 +116,7 @@ process centrifugePaVE {
         '''
         
 		centrifuge -x !{index}/obenauf_PaVE_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_PaVE_centrifuge_report.tsv > readwise.txt
-		centrifuge-kreport -x !{index}/obenauf_PaVE_index readwise.txt > !{lane}_PaVE_kreport.out
+		centrifuge-kreport -x !{index}/obenauf_PaVE_index readwise.txt > !{lane}_PaVE_kreport.out 2> /dev/null
 
         '''
 }
@@ -142,7 +142,7 @@ process centrifugeRefSeq {
         '''
         
 		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_refseq_centrifuge_report.tsv > readwise.txt
-		centrifuge-kreport -x !{index}/obenauf_plain_index readwise.txt > !{lane}_refseq_kreport.out
+		centrifuge-kreport -x !{index}/obenauf_plain_index readwise.txt > !{lane}_refseq_kreport.out 2> /dev/null
 
         '''
     
@@ -151,7 +151,7 @@ process centrifugeRefSeq {
         '''
         
 		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_refseq_centrifuge_report.tsv > readwise.txt
-		centrifuge-kreport -x !{index}/obenauf_plain_index readwise.txt > !{lane}_refseq_kreport.out
+		centrifuge-kreport -x !{index}/obenauf_plain_index readwise.txt > !{lane}_refseq_kreport.out 2> /dev/null
 
         '''
 }
@@ -177,7 +177,7 @@ process centrifugeENA {
         '''
         
 		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_ENA_centrifuge_report.tsv > readwise.txt
-		centrifuge-kreport -x !{index}/obenauf_ENA_index readwise.txt > !{lane}_ENA_kreport.out
+		centrifuge-kreport -x !{index}/obenauf_ENA_index readwise.txt > !{lane}_ENA_kreport.out 2> /dev/null
 
         '''
     
@@ -186,7 +186,7 @@ process centrifugeENA {
         '''
         
 		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > readwise.txt
-		centrifuge-kreport -x !{index}/obenauf_ENA_index readwise.txt > !{lane}_ENA_kreport.out
+		centrifuge-kreport -x !{index}/obenauf_ENA_index readwise.txt > !{lane}_ENA_kreport.out 2> /dev/null
 
         '''
 }
