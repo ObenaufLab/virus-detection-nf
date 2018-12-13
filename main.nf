@@ -92,7 +92,7 @@ process salmon {
         
     input:
     set val(lane), file(reads) from fastqChannel
-    file index from PaVEIndex.first()
+    file index from indexChannel.first()
 
     output:
     file ("${lane}_salmon/quant.sf") into salmonChannel
