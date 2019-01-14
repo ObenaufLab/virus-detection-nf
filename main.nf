@@ -105,11 +105,13 @@ process salmon {
     if (!single)
 
       '''
-      salmon quant -i !{index} -l A -1 !{reads[0]} -2 !{reads[1]} -z -o !{lane}_salmon -p !{task.cpus} | samtools view -Sb -F 256 - > !{lane}_pseudo.bam
+      salmon quant -i !{index} -l A -1 !{reads[0]} -2 !{reads[1]} -z tmp.bam -o !{lane}_salmon -p !{task.cpus} --validateMappings
+      samtools view -Sb -F 256 tmp.bam > !{lane}_pseudo.bam
 	    '''
     else
       '''
-      salmon quant -i !{index} -l A -r !{reads} -z -o !{lane}_salmon -p !{task.cpus} | samtools view -Sb -F 256 - > !{lane}_pseudo.bam
+      salmon quant -i !{index} -l A -r !{reads} -z tmp.bam -o !{lane}_salmon -p !{task.cpus} --validateMappings
+      samtools view -Sb -F 256 tmp.bam > !{lane}_pseudo.bam
 	    '''
 
 }
