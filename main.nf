@@ -43,7 +43,7 @@ def helpMessage() {
         aws                 SLURM execution with singularity on IMPIMBA2
 
     Docker:
-    quay.io/biocontainers/salmon:0.12.0--h86b0361_1
+    obenauflab/salmon:latest
 
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
