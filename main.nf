@@ -32,7 +32,7 @@ def helpMessage() {
     DESCRIPTION
     Usage:
     nextflow run obenauflab/virus-detection-nf -r salmon
-    
+
     Options:
         --inputDir        	Input directory of fastq files.
         --outputDir        	Output folder for salmon quantification files.
@@ -41,10 +41,10 @@ def helpMessage() {
         standard            local execution
         ii2                 SLURM execution with singularity on IMPIMBA2
         aws                 SLURM execution with singularity on IMPIMBA2
-        
+
     Docker:
     quay.io/biocontainers/salmon:0.12.0--h86b0361_1
-    
+
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
     """.stripIndent()
@@ -89,31 +89,32 @@ indexChannel = Channel
 process salmon {
 
 	tag { lane }
-        
+
     input:
     set val(lane), file(reads) from fastqChannel
     file index from indexChannel.first()
 
     output:
     file ("${lane}_salmon/quant.sf") into salmonChannel
+    file ("${lane}_pseudo.bam") into pseudoBamChannel
 
     shell:
-    
+
     def single = reads instanceof Path
-    
+
     if (!single)
 
-        '''
-	    salmon quant -i !{index} -l A -1 !{reads[0]} -2 !{reads[1]} -o !{lane}_salmon -p !{task.cpus}
+      '''
+      salmon quant -i !{index} -l A -1 !{reads[0]} -2 !{reads[1]} -z -o !{lane}_salmon -p !{task.cpus} | samtools view -Sb -F 256 - > !{lane}_pseudo.bam
 	    '''
     else
-        '''
-	    salmon quant -i !{index} -l A -r !{reads} -o !{lane}_salmon -p !{task.cpus}
+      '''
+      salmon quant -i !{index} -l A -r !{reads} -z -o !{lane}_salmon -p !{task.cpus} | samtools view -Sb -F 256 - > !{lane}_pseudo.bam
 	    '''
 
 }
 
-workflow.onComplete { 
+workflow.onComplete {
 	RED='\033[0;31m'
     GREEN='\033[0;32m'
     NC='\033[0m'
