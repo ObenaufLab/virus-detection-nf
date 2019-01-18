@@ -70,7 +70,7 @@ Channel
     .map { file -> tuple( file.baseName, file ) }
     .set { rawBamFiles }
     
-process bamToFastq {
+process centrifugeFocused {
 
     tag { lane }
     
