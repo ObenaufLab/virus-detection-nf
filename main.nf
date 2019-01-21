@@ -119,10 +119,14 @@ if (params.index == "PaVE") {
 
 }
 
-Channel
-    .fromPath( "${params.inputDir}/*/*.bam" )
-    .map { file -> tuple( file.baseName, file ) }
-    .set { rawBamFiles }
+pairedEndRegex = params.inputDir + "/*_{1,2}.fq.gz"
+SERegex = params.inputDir + "/*[!12].fq.gz"
+
+pairFiles = Channel.fromFilePairs(pairedEndRegex)
+singleFiles = Channel.fromFilePairs(SERegex, size: 1){ file -> file.baseName.replaceAll(/.fq/,"") }
+
+singleFiles.mix(pairFiles)
+.set { fastqChannel }
 
 process centrifugeMatchExtraction {
 
