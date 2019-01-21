@@ -32,19 +32,20 @@ def helpMessage() {
     DESCRIPTION
     Usage:
     nextflow run obenauflab/virus-detection-nf -r manta
-    
+
     Options:
         --inputDir        	Input directory of fastq files.
         --outputDir        	Output folder for SV vcf files.
+        --index             Index to use, one of PaVE|RefSeq|ENA
 
     Profiles:
         standard            local execution
         ii2                 SLURM execution with singularity on IMPIMBA2
         aws                 SLURM execution with singularity on IMPIMBA2
-        
+
     Docker:
     obenauflab/virusintegration:latest
-    
+
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
     """.stripIndent()
@@ -61,40 +62,157 @@ log.info ""
 log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
-log.info " output directory         : ${params.output}"
+log.info " output directory         : ${params.outputDir}"
 log.info " ======================"
 log.info ""
+
+if (params.index == "PaVE") {
+
+  centrifugeIndex = Channel
+	   .fromPath(params.centrifugePaVEIndex)
+	   .ifEmpty { exit 1, "Centrifuge index not found: ${params.centrifugePaVEIndex}" }
+
+   bwaIndex = Channel
+ 	   .fromPath(params.BWAPaVEIndex)
+ 	   .ifEmpty { exit 1, "BWA index not found: ${params.BWAPaVEIndex}" }
+
+   mantaIndex = Channel
+       .fromPath(params.BWAPaVEIndex)
+       .ifEmpty { exit 1, "Manta index not found: ${params.BWAPaVEIndex}" }
+
+} else if (params.index == "RefSeq") {
+
+  centrifugeIndex = Channel
+    .fromPath(params.centrifugeRefSeqIndex)
+    .ifEmpty { exit 1, "Centrifuge index not found: ${params.centrifugeRefSeqIndex}" }
+
+   bwaIndex = Channel
+      .fromPath(params.BWARefSeqIndex)
+      .ifEmpty { exit 1, "BWA index not found: ${params.BWARefSeqIndex}" }
+
+   mantaIndex = Channel
+       .fromPath(params.BWARefSeqIndex)
+       .ifEmpty { exit 1, "Manta index not found: ${params.BWARefSeqIndex}" }
+
+} else if (params.index == "ENA") {
+
+  centrifugeIndex = Channel
+    .fromPath(params.centrifugeENAIndex)
+    .ifEmpty { exit 1, "Centrifuge index not found: ${params.centrifugeENAIndex}" }
+
+   bwaIndex = Channel
+      .fromPath(params.BWAENAIndex)
+      .ifEmpty { exit 1, "BWA index not found: ${params.BWAENAIndex}" }
+
+   mantaIndex = Channel
+       .fromPath(params.BWAENAIndex)
+       .ifEmpty { exit 1, "Manta index not found: ${params.BWAENAIndex}" }
+
+} else {
+
+   log.info"""
+   Choose one of PaVE | RefSeq | ENA as Index!
+
+   """.stripIndent()
+   helpMessage()
+   exit 0
+
+}
 
 Channel
     .fromPath( "${params.inputDir}/*/*.bam" )
     .map { file -> tuple( file.baseName, file ) }
     .set { rawBamFiles }
-    
-process centrifugeFocused {
 
-    tag { lane }
-    
+process centrifugeMatchExtraction {
+
+	tag { lane }
+
     input:
-    set val(lane), file(bam) from rawBamFiles
+    set val(lane), file(reads) from fastqChannel
+    file index from centrifugeIndex.first()
+
 
     output:
-    set val(lane), file("${lane}*.fq.gz") into out
+    set val(lane), file ("reads*fq") into readSubsetChannel
 
     shell:
-    '''
-    
-    paired=`samtools view -c -f 1 !{bam}`
-    
-    if [ $paired -eq "0" ]; then
-    	samtools fastq -@ !{task.cpus} -c 6 -s !{lane}.fq.gz !{bam}
+
+    def single = reads instanceof Path
+
+	if (!single)
+
+        '''
+        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --host-taxids 20000109 | grep 20000109 | cut -f 1 | sort | uniq > readIDs
+        seqtk subseq !{reads[0]} readIDs > reads1.fq
+        seqtk subseq !{reads[2]} readIDs > reads2.fq
+
+        '''
+
     else
-		samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq.gz -2 !{lane}_2.fq.gz -n -c 6 -@ !{task.cpus} -
-    fi
-    
+
+        '''
+
+        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} --host-taxids 20000109 | grep 20000109 | cut -f 1 | sort | uniq > readIDs
+        seqtk subseq !{reads} readIDs > reads.fq
+
+        '''
+}
+
+process bwa {
+
+	tag { lane }
+
+    input:
+    set val(lane), file(reads) from readSubsetChannel
+    file index from bwaIndex.first()
+
+    output:
+    set val(lane), file ("${lane}.bwa*") into bwaChannel
+
+    shell:
+
+    if (task.cpus > 4) {
+    	bwaThreads = task.cpus - 2
+    	sortThreads = 2
+    } else {
+    	bwaThreads = task.cpus
+    	sortThreads = 1
+    }
+
+    '''
+    bwa mem -M -R '@RG\\tID:!{lane}\\tPL:illumina\\tSM:!{lane}' -t !{bwaThreads} !{index}/bwa_index.fa !{reads} | \
+    	samtools view -b - | samtools sort -@ !{sortThreads} -o !{lane}.bwa.bam
+
+    samtools index !{lane}.bwa.bam
     '''
 }
 
-workflow.onComplete { 
+process manta {
+
+	tag { lane }
+
+    input:
+    set val(lane), file(bwa) from bwaChannel
+    file index from mantaIndex.first()
+
+    output:
+    file ("manta/results/variants/*") into outManta
+
+    shell:
+    '''
+
+    shopt -s expand_aliases
+
+    configManta.py --bam !{bwa[0]} \
+    			   --referenceFasta !{index}/bwa_index.fa \
+    			   --runDir manta
+    ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
+
+    '''
+}
+
+workflow.onComplete {
 	RED='\033[0;31m'
     GREEN='\033[0;32m'
     NC='\033[0m'
