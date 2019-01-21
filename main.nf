@@ -149,7 +149,7 @@ process centrifugeMatchExtraction {
         '''
         centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --host-taxids 20000109 | grep 20000109 | cut -f 1 | sort | uniq > readIDs
         seqtk subseq !{reads[0]} readIDs > reads1.fq
-        seqtk subseq !{reads[2]} readIDs > reads2.fq
+        seqtk subseq !{reads[1]} readIDs > reads2.fq
 
         '''
 
