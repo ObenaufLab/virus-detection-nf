@@ -213,6 +213,14 @@ process manta {
     			   --runDir manta
     ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
 
+    mkdir -p !{lane}
+    mv manta/results/variants/candidateSmallIndels.vcf.gz manta/results/variants/!{lane}_candidateSmallIndels.vcf.gz
+    mv manta/results/variants/candidateSmallIndels.vcf.gz.tbi manta/results/variants/!{lane}_candidateSmallIndels.vcf.gz.tbi
+    mv manta/results/variants/candidateSV.vcf.gz manta/results/variants/!{lane}_candidateSV.vcf.gz
+    mv manta/results/variants/candidateSV.vcf.gz.tbi manta/results/variants/!{lane}_candidateSV.vcf.gz.tbi
+    mv manta/results/variants/diploidSV.vcf.gz manta/results/variants/!{lane}_diploidSV.vcf.gz
+    mv manta/results/variants/diploidSV.vcf.gz.tbi manta/results/variants/!{lane}_diploidSV.vcf.gz.tbi
+
     '''
 }
 
