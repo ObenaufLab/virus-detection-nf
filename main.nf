@@ -209,7 +209,7 @@ process manta {
 
     shell:
 
-    def configArg = mantaConfigFile.name != 'NO CONFIG' ? "--config ${params.mantaConfig}" : ''
+    def configArg = mantaConfigFile.name != 'NO CONFIG' ? "--config !{params.mantaConfig}" : ''
     '''
 
     shopt -s expand_aliases
