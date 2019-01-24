@@ -211,7 +211,7 @@ process manta {
     script:
 
     def configArg = mantaConfigFile.name != 'NO CONFIG' ? "--config ${params.mantaConfig}" : ''
-    '''
+    """
 
     shopt -s expand_aliases
 
@@ -233,7 +233,7 @@ process manta {
     mv manta/results/evidence/*bam manta/results/evidence/${lane}_evidence.bam
     mv manta/results/evidence/*bai manta/results/evidence/${lane}_evidence.bam.bai
 
-    '''
+    """
 }
 
 workflow.onComplete {
