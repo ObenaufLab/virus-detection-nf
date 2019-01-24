@@ -40,10 +40,10 @@ def helpMessage() {
         standard            local execution
         slurm			    SLURM execution with singularity on IMPIMBA2
         awsbatch            AWS batch execution
-        
+
     Docker:
     obenauflab/virusintegration:latest
-    
+
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
     """.stripIndent()
@@ -76,15 +76,15 @@ singleFiles.mix(pairFiles)
 PaVEIndex = Channel
 	.fromPath(params.PaVEIndex)
 	.ifEmpty { exit 1, "PaVE index not found: ${params.PaVEIndex}" }
-	
+
 RefseqIndex = Channel
 	.fromPath(params.refseqIndex)
 	.ifEmpty { exit 1, "Refseq index not found: ${params.refseqIndex}" }
-	
+
 ENAIndex = Channel
 	.fromPath(params.ENAIndex)
 	.ifEmpty { exit 1, "ENA index not found: ${params.ENAIndex}" }
-    
+
 process centrifugePaVE {
 
 	tag { lane }
@@ -92,28 +92,28 @@ process centrifugePaVE {
     input:
     set val(lane), file(reads) from fastqPaVEChannel
     file index from PaVEIndex.first()
-    
+
 
     output:
     file ("*_PaVE_centrifuge_report.tsv") into PaVEChannel
 
     shell:
-    
+
     def single = reads instanceof Path
-    
+
 	if (!single)
-    
-        '''
-        
-		centrifuge -x !{index}/obenauf_PaVE_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
 
         '''
-    
-    else 
-    
+
+		centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
+
         '''
-        
-		centrifuge -x !{index}/obenauf_PaVE_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
+
+    else
+
+        '''
+
+		centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_PaVE_centrifuge_report.tsv > /dev/null
 
         '''
 }
@@ -130,22 +130,22 @@ process centrifugeRefSeq {
     file ("*_refseq_centrifuge_report.tsv") into refseqChannel
 
     shell:
-    
+
     def single = reads instanceof Path
-    
+
 	if (!single)
-    
-        '''
-        
-		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
 
         '''
-    
-    else 
-    
+
+		centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
+
         '''
-        
-		centrifuge -x !{index}/obenauf_plain_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
+
+    else
+
+        '''
+
+		centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_refseq_centrifuge_report.tsv > /dev/null
 
         '''
 }
@@ -162,27 +162,27 @@ process centrifugeENA {
     file ("*_ENA_centrifuge_report.tsv") into ENAChannel
 
     shell:
-    
+
     def single = reads instanceof Path
-    
+
 	if (!single)
-    
-        '''
-        
-		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
 
         '''
-    
-    else 
-    
+
+		centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
+
         '''
-        
-		centrifuge -x !{index}/obenauf_ENA_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
+
+    else
+
+        '''
+
+		centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} --report-file !{lane}_ENA_centrifuge_report.tsv > /dev/null
 
         '''
 }
 
-workflow.onComplete { 
+workflow.onComplete {
 	RED='\033[0;31m'
     GREEN='\033[0;32m'
     NC='\033[0m'
