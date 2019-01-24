@@ -147,7 +147,7 @@ process centrifugeMatchExtraction {
 	if (!single)
 
         '''
-        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} --host-taxids 20000109 | grep 20000109 | cut -f 1 | sort | uniq > readIDs
+        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} | grep 20000109 | cut -f 1 | sort | uniq > readIDs
         seqtk subseq !{reads[0]} readIDs > reads1.fq
         seqtk subseq !{reads[1]} readIDs > reads2.fq
 
@@ -157,7 +157,7 @@ process centrifugeMatchExtraction {
 
         '''
 
-        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} --host-taxids 20000109 | grep 20000109 | cut -f 1 | sort | uniq > readIDs
+        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} | grep 20000109 | cut -f 1 | sort | uniq > readIDs
         seqtk subseq !{reads} readIDs > reads.fq
 
         '''
@@ -210,7 +210,8 @@ process manta {
 
     configManta.py --bam !{bwa[0]} \
     			   --referenceFasta !{index}/bwa_index.fa \
-    			   --runDir manta
+    			   --runDir manta \
+             --rna
     ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
 
     mkdir -p !{lane}
