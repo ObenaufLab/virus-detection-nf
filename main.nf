@@ -205,30 +205,33 @@ process manta {
     file index from mantaIndex.first()
 
     output:
-    file ("manta/results/variants/*") into outManta
+    file ("manta/results/variants/*") into outMantaVariants
+    file ("manta/results/evidence/*") into outMantaBam
 
-    shell:
+    script:
 
-    def configArg = mantaConfigFile.name != 'NO CONFIG' ? "--config !{params.mantaConfig}" : ''
+    def configArg = mantaConfigFile.name != 'NO CONFIG' ? "--config ${params.mantaConfig}" : ''
     '''
 
     shopt -s expand_aliases
 
-    configManta.py --bam !{bwa[0]} \
-    			   --referenceFasta !{index}/bwa_index.fa \
+    configManta.py --bam ${bwa[0]} \
+    			   --referenceFasta ${index}/bwa_index.fa \
     			   --runDir manta \
              --rna \
-             --generateEvidenceBam !{configArg}
+             --generateEvidenceBam ${configArg}
 
-    ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
+    \${PWD}/manta/runWorkflow.py -m local -j ${task.cpus} -g ${task.memory.toGiga()}
 
-    mkdir -p !{lane}
-    mv manta/results/variants/candidateSmallIndels.vcf.gz manta/results/variants/!{lane}_candidateSmallIndels.vcf.gz
-    mv manta/results/variants/candidateSmallIndels.vcf.gz.tbi manta/results/variants/!{lane}_candidateSmallIndels.vcf.gz.tbi
-    mv manta/results/variants/candidateSV.vcf.gz manta/results/variants/!{lane}_candidateSV.vcf.gz
-    mv manta/results/variants/candidateSV.vcf.gz.tbi manta/results/variants/!{lane}_candidateSV.vcf.gz.tbi
-    mv manta/results/variants/diploidSV.vcf.gz manta/results/variants/!{lane}_diploidSV.vcf.gz
-    mv manta/results/variants/diploidSV.vcf.gz.tbi manta/results/variants/!{lane}_diploidSV.vcf.gz.tbi
+    mkdir -p ${lane}
+    mv manta/results/variants/candidateSmallIndels.vcf.gz manta/results/variants/${lane}_candidateSmallIndels.vcf.gz
+    mv manta/results/variants/candidateSmallIndels.vcf.gz.tbi manta/results/variants/${lane}_candidateSmallIndels.vcf.gz.tbi
+    mv manta/results/variants/candidateSV.vcf.gz manta/results/variants/${lane}_candidateSV.vcf.gz
+    mv manta/results/variants/candidateSV.vcf.gz.tbi manta/results/variants/${lane}_candidateSV.vcf.gz.tbi
+    mv manta/results/variants/diploidSV.vcf.gz manta/results/variants/${lane}_diploidSV.vcf.gz
+    mv manta/results/variants/diploidSV.vcf.gz.tbi manta/results/variants/${lane}_diploidSV.vcf.gz.tbi
+    mv manta/results/evidence/*bam manta/results/evidence/${lane}_evidence.bam
+    mv manta/results/evidence/*bai manta/results/evidence/${lane}_evidence.bam.bai
 
     '''
 }
