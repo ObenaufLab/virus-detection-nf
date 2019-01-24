@@ -228,8 +228,8 @@ process manta {
     mv manta/results/variants/candidateSmallIndels.vcf.gz.tbi manta/results/variants/${lane}_candidateSmallIndels.vcf.gz.tbi
     mv manta/results/variants/candidateSV.vcf.gz manta/results/variants/${lane}_candidateSV.vcf.gz
     mv manta/results/variants/candidateSV.vcf.gz.tbi manta/results/variants/${lane}_candidateSV.vcf.gz.tbi
-    mv manta/results/variants/diploidSV.vcf.gz manta/results/variants/${lane}_diploidSV.vcf.gz
-    mv manta/results/variants/diploidSV.vcf.gz.tbi manta/results/variants/${lane}_diploidSV.vcf.gz.tbi
+    mv manta/results/variants/rnaSV.vcf.gz manta/results/variants/${lane}_rnaSV.vcf.gz
+    mv manta/results/variants/rnaSV.vcf.gz.tbi manta/results/variants/${lane}_rnaSV.vcf.gz.tbi
     mv manta/results/evidence/*bam manta/results/evidence/${lane}_evidence.bam
     mv manta/results/evidence/*bai manta/results/evidence/${lane}_evidence.bam.bai
 
