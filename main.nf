@@ -128,7 +128,9 @@ singleFiles = Channel.fromFilePairs(SERegex, size: 1){ file -> file.baseName.rep
 singleFiles.mix(pairFiles)
 .set { fastqChannel }
 
-process centrifugeMatchExtraction {
+mantaConfigFile = file(params.mantaConfig)
+
+/*process centrifugeMatchExtraction {
 
 	tag { lane }
 
@@ -161,14 +163,15 @@ process centrifugeMatchExtraction {
         seqtk subseq !{reads} readIDs > reads.fq
 
         '''
-}
+}*/
 
 process bwa {
 
 	tag { lane }
 
     input:
-    set val(lane), file(reads) from readSubsetChannel
+    // set val(lane), file(reads) from readSubsetChannel
+    set val(lane), file(reads) from fastqChannel
     file index from bwaIndex.first()
 
     output:
@@ -198,12 +201,15 @@ process manta {
 
     input:
     set val(lane), file(bwa) from bwaChannel
+    file mantaConfigFile
     file index from mantaIndex.first()
 
     output:
     file ("manta/results/variants/*") into outManta
 
     shell:
+
+    def configArg = mantaConfigFile.name != 'NO CONFIG' ? "--config $(params.mantaConfig)" : ''
     '''
 
     shopt -s expand_aliases
@@ -211,7 +217,9 @@ process manta {
     configManta.py --bam !{bwa[0]} \
     			   --referenceFasta !{index}/bwa_index.fa \
     			   --runDir manta \
-             --rna
+             --rna \
+             --generateEvidenceBam !{configArg}
+
     ${PWD}/manta/runWorkflow.py -m local -j !{task.cpus} -g !{task.memory.toGiga()}
 
     mkdir -p !{lane}
