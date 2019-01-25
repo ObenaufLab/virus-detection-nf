@@ -25,6 +25,8 @@
 NAME=$1
 REPODIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
+# Prepare directory structure
+
 mkdir -p $NAME
 mkdir -p $NAME/analysis
 mkdir -p $NAME/virus-integration/
@@ -32,8 +34,12 @@ mkdir -p $NAME/virus-integration/centrifuge
 mkdir -p $NAME/virus-integration/salmon
 mkdir -p $NAME/virus-integration/TCGAconversion
 
+# s3 upload
+
 cp ${REPODIR}/s3templates/upload.s3 $NAME/s3.sh
 sed -i "s/SAMPLE/$NAME/g" $NAME/s3.sh
+
+# Nextflow AWS runs
 
 cp ${REPODIR}/NFtemplates/conversionTemplate.nf $NAME/virus-integration/TCGAconversion/callNextflow.sh
 sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/TCGAconversion/callNextflow.sh
@@ -43,3 +49,14 @@ sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/centrifuge/callNextflow.sh
 
 cp ${REPODIR}/NFtemplates/salmonTemplate.nf $NAME/virus-integration/salmon/callNextflow.sh
 sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/salmon/callNextflow.sh
+
+# s3 fetch results
+
+cp ${REPODIR}/s3templates/downloadConversion.s3 $NAME/virus-integration/TCGAconversion/s3.sh
+sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/TCGAconversion/s3.sh
+
+cp ${REPODIR}/s3templates/downloadCentrifuge.s3 $NAME/virus-integration/centrifuge/s3.sh
+sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/centrifuge/s3.sh
+
+cp ${REPODIR}/s3templates/downloadSalmon.s3 $NAME/virus-integration/salmon/s3.sh
+sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/salmon/s3.sh

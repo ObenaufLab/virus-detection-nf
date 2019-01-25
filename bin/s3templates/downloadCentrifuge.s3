@@ -1,0 +1,6 @@
+ml load awscli/1.11.162-foss-2017a-python-2.7.13
+
+aws s3 rm s3://obenauflab/work/centrifuge/SAMPLE --recursive
+aws s3 cp s3://obenauflab/centrifuge/SAMPLE results/PaVE --recursive --exclude "*" --include "*_PaVE_*"
+aws s3 cp s3://obenauflab/centrifuge/SAMPLE results/ENA --recursive --exclude "*" --include "*_ENA_*"
+aws s3 cp s3://obenauflab/centrifuge/SAMPLE results/refseq --recursive --exclude "*" --include "*_refseq_*"

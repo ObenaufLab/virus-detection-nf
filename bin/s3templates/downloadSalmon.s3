@@ -1,0 +1,4 @@
+ml load awscli/1.11.162-foss-2017a-python-2.7.13
+
+aws s3 rm s3://obenauflab/work/salmon/SAMPLE --recursive
+aws s3 cp s3://obenauflab/salmon/SAMPLE results/ --recursive
