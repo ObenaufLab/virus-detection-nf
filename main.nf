@@ -31,20 +31,20 @@ def helpMessage() {
     ================================================================
     DESCRIPTION
     Usage:
-    nextflow run obenauflab/virus-detection-nf -r TCGAconversion
-    
+    nextflow run obenauflab/virus-detection-nf -r trinity
+
     Options:
         --inputDir        	Input directory of bam files.
-        --output        	Output folder for converted fastq files.
+        --outputDir        	Output folder for Trinity.
 
     Profiles:
         standard            local execution
         ii2                 SLURM execution with singularity on IMPIMBA2
-        aws                 SLURM execution with singularity on IMPIMBA2
-        
+        aws                 AWS batch execution
+
     Docker:
     obenauflab/virusintegration:latest
-    
+
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
     """.stripIndent()
@@ -66,14 +66,14 @@ log.info " ======================"
 log.info ""
 
 Channel
-    .fromPath( "${params.inputDir}/*/*.bam" )
+    .fromPath( "${params.inputDir}/*.bam" )
     .map { file -> tuple( file.baseName, file ) }
     .set { rawBamFiles }
-    
-process bamToFastq {
+
+process trinity {
 
     tag { lane }
-    
+
     input:
     set val(lane), file(bam) from rawBamFiles
 
@@ -82,19 +82,31 @@ process bamToFastq {
 
     shell:
     '''
-    
+
     paired=`samtools view -c -f 1 !{bam}`
-    
+
     if [ $paired -eq "0" ]; then
-    	samtools fastq -@ !{task.cpus} -c 6 -s !{lane}.fq.gz !{bam}
+    	 samtools fastq -@ !{task.cpus} -s !{lane}.fq !{bam}
+
+       Trinity --seqType fq --SS_lib_type RF \
+                --max_memory !{task.memory.toGiga()}G \
+                --single !{lane}.fq \
+                --CPU !{task.cpus} --output trinity
+
     else
-		samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq.gz -2 !{lane}_2.fq.gz -n -c 6 -@ !{task.cpus} -
+		   samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq -2 !{lane}_2.fq -n -@ !{task.cpus} -
+
+       Trinity --seqType fq --SS_lib_type RF \
+                --max_memory !{task.memory.toGiga()}G \
+                --left !{lane}_1.fq \
+                --right !{lane}_2.fq \
+                --CPU !{task.cpus} --output trinity
     fi
-    
+
     '''
 }
 
-workflow.onComplete { 
+workflow.onComplete {
 	RED='\033[0;31m'
     GREEN='\033[0;32m'
     NC='\033[0m'
