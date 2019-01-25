@@ -1,0 +1,8 @@
+ml load awscli/1.11.162-foss-2017a-python-2.7.13
+
+for sample in `ls -l /groups/obenauf/Tobias_Neumann/TCGA/local/batch/SAMPLE/raw/ | grep "^d" | sed -e 's/.*\s//g'`;
+do
+       	echo "aws s3 cp /groups/obenauf/Tobias_Neumann/TCGA/local/batch/SAMPLE/raw/${sample} s3://obenauflab/bam/SAMPLE/${sample} --recursive"
+       	aws s3 cp /groups/obenauf/Tobias_Neumann/TCGA/local/batch/SAMPLE/raw/${sample} s3://obenauflab/bam/SAMPLE/${sample} --recursive
+
+done

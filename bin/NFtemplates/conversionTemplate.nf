@@ -1,0 +1,1 @@
+nextflow run obenauflab/virus-detection-nf -r TCGAconversion --inputDir s3://obenauflab/bam/SAMPLE --output s3://obenauflab/fastq/SAMPLE -profile awsbatch -w s3://obenauflab/work/TCGAconversion/SAMPLE -with-report SAMPLE_TCGAconversion_report.html

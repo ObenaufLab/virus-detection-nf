@@ -1,0 +1,1 @@
+nextflow run obenauflab/virus-detection-nf -r centrifuge --inputDir s3://obenauflab/fastq/SAMPLE --outputDir s3://obenauflab/centrifuge/SAMPLE -profile awsbatch -w s3://obenauflab/work/centrifuge/SAMPLE -with-report SAMPLE_centrifuge_report.html

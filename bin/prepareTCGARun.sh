@@ -23,8 +23,23 @@
 # SOFTWARE.
 
 NAME=$1
+REPODIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 mkdir -p $NAME
-mkdir -p $NAME/raw
+mkdir -p $NAME/analysis
+mkdir -p $NAME/virus-integration/
+mkdir -p $NAME/virus-integration/centrifuge
+mkdir -p $NAME/virus-integration/salmon
+mkdir -p $NAME/virus-integration/TCGAconversion
 
-echo "/groups/obenauf/Software/gdc-client download -m gdc_manifest.txt -t /groups/obenauf/Tobias_Neumann/TCGA/token/gdc-user-token.2019-01-17T18_55_35.738Z.txt -n 100 --log-file gdc.log --no-related-files --no-segment-md5sums --debug --latest" >> $NAME/raw/download.sh
+cp ${REPODIR}/s3templates/upload.s3 $NAME/s3.sh
+sed -i "s/SAMPLE/$NAME/g" $NAME/s3.sh
+
+cp ${REPODIR}/NFtemplates/conversionTemplate.nf $NAME/virus-integration/TCGAconversion/callNextflow.sh
+sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/TCGAconversion/callNextflow.sh
+
+cp ${REPODIR}/NFtemplates/centrifugeTemplate.nf $NAME/virus-integration/centrifuge/callNextflow.sh
+sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/centrifuge/callNextflow.sh
+
+cp ${REPODIR}/NFtemplates/salmonTemplate.nf $NAME/virus-integration/salmon/callNextflow.sh
+sed -i "s/SAMPLE/$NAME/g" $NAME/virus-integration/salmon/callNextflow.sh

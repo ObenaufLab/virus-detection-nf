@@ -1,0 +1,1 @@
+nextflow run obenauflab/virus-detection-nf -r salmon --inputDir s3://obenauflab/fastq/SAMPLE --outputDir s3://obenauflab/salmon/SAMPLE -profile awsbatch -w s3://obenauflab/work/salmon/SAMPLE -with-report SAMPLE_salmon_report.html
