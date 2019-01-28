@@ -43,7 +43,8 @@ def helpMessage() {
         aws                 AWS batch execution
 
     Docker:
-    obenauflab/virusintegration:latest
+    quay.io/biocontainers/samtools:1.9--h8ee4bcc_1
+    trinityrnaseq/trinityrnaseq:2.8.4
 
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
