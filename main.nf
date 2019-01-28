@@ -70,7 +70,7 @@ Channel
     .map { file -> tuple( file.baseName, file ) }
     .set { rawBamFiles }
 
-process trinity {
+process bamToFastq {
 
     tag { lane }
 
@@ -78,7 +78,7 @@ process trinity {
     set val(lane), file(bam) from rawBamFiles
 
     output:
-    set val(lane), file("${lane}*.fq.gz") into out
+    set val(lane), stdout, file("${lane}*.fq") into rawReads
 
     shell:
     '''
@@ -86,6 +86,9 @@ process trinity {
     paired=`samtools view -c -f 1 !{bam}`
 
     if [ $paired -eq "0" ]; then
+
+       printf "False"
+
     	 samtools fastq -@ !{task.cpus} -s !{lane}.fq !{bam}
 
        Trinity --seqType fq --SS_lib_type RF \
@@ -93,17 +96,56 @@ process trinity {
                 --single !{lane}.fq \
                 --CPU !{task.cpus} --output trinity
 
+       mv trinity/Trinity.fasta !{lane}_trinity.fa
+
     else
-		   samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq -2 !{lane}_2.fq -n -@ !{task.cpus} -
+
+       printf "True"
+
+		   samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq -2 !{lane}_2.fq -N -@ !{task.cpus} -
 
        Trinity --seqType fq --SS_lib_type RF \
                 --max_memory !{task.memory.toGiga()}G \
                 --left !{lane}_1.fq \
                 --right !{lane}_2.fq \
                 --CPU !{task.cpus} --output trinity
+
+       mv trinity/Trinity.fasta !{lane}_trinity.fa
     fi
 
     '''
+}
+
+process trinity {
+
+    tag { lane }
+
+    input:
+    set val(lane), val(paired), file(reads) from rawReads
+
+    output:
+    set val(lane), file("*trinity.fa") into outTrinity
+
+    shell:
+    if( paired == 'True' )
+      '''
+      Trinity --seqType fq --SS_lib_type RF \
+               --max_memory !{task.memory.toGiga()}G \
+               --left !{reads[0]} \
+               --right !{reads[1]} \
+               --CPU !{task.cpus} --output trinity
+
+      mv trinity/Trinity.fasta !{lane}_trinity.fa
+	    '''
+    else
+      '''
+      Trinity --seqType fq --SS_lib_type RF \
+               --max_memory !{task.memory.toGiga()}G \
+               --single !{reads} \
+               --CPU !{task.cpus} --output trinity
+
+      mv trinity/Trinity.fasta !{lane}_trinity.fa
+	    '''
 }
 
 workflow.onComplete {
