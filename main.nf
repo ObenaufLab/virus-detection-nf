@@ -92,26 +92,12 @@ process bamToFastq {
 
     	 samtools fastq -@ !{task.cpus} -s !{lane}.fq !{bam}
 
-       Trinity --seqType fq --SS_lib_type RF \
-                --max_memory !{task.memory.toGiga()}G \
-                --single !{lane}.fq \
-                --CPU !{task.cpus} --output trinity
-
-       mv trinity/Trinity.fasta !{lane}_trinity.fa
-
     else
 
        printf "True"
 
 		   samtools collate -f -O -u -@ !{task.cpus} !{bam} | samtools fastq -1 !{lane}_1.fq -2 !{lane}_2.fq -N -@ !{task.cpus} -
 
-       Trinity --seqType fq --SS_lib_type RF \
-                --max_memory !{task.memory.toGiga()}G \
-                --left !{lane}_1.fq \
-                --right !{lane}_2.fq \
-                --CPU !{task.cpus} --output trinity
-
-       mv trinity/Trinity.fasta !{lane}_trinity.fa
     fi
 
     '''
