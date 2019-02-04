@@ -37,6 +37,7 @@ def helpMessage() {
         --inputDir        	Input directory of fastq files.
         --outputDir        	Output folder for SV vcf files.
         --index             Index to use, one of PaVE|RefSeq|ENA
+        --taxID             Taxonomy ID of classified reads to extract (optional)
 
     Profiles:
         standard            local execution
@@ -63,6 +64,8 @@ log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
 log.info " output directory         : ${params.outputDir}"
+log.info " index                    : ${params.index}"
+log.info " taxID                    : ${params.taxID}"
 log.info " ======================"
 log.info ""
 
@@ -130,17 +133,21 @@ singleFiles.mix(pairFiles)
 
 mantaConfigFile = file(params.mantaConfig)
 
-/*process centrifugeMatchExtraction {
+(centrifugeReadChannel, bwaReadChannel) = ( params.taxID == "NONE"
+                                        ? [Channel.empty(), fastqChannel]
+                                        : [fastqChannel, Channel.empty()] )
+
+process centrifugeMatchExtraction {
 
 	tag { lane }
 
     input:
-    set val(lane), file(reads) from fastqChannel
+    set val(lane), file(reads) from centrifugeReadChannel
     file index from centrifugeIndex.first()
 
 
     output:
-    set val(lane), file ("reads*fq") into readSubsetChannel
+    set val(lane), file ("reads*fq") into bwaChannel
 
     shell:
 
@@ -149,7 +156,7 @@ mantaConfigFile = file(params.mantaConfig)
 	if (!single)
 
         '''
-        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} | grep 20000109 | cut -f 1 | sort | uniq > readIDs
+        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -1 !{reads[0]} -2 !{reads[1]} | grep !{params.taxID} | cut -f 1 | sort | uniq > readIDs
         seqtk subseq !{reads[0]} readIDs > reads1.fq
         seqtk subseq !{reads[1]} readIDs > reads2.fq
 
@@ -159,19 +166,19 @@ mantaConfigFile = file(params.mantaConfig)
 
         '''
 
-        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} | grep 20000109 | cut -f 1 | sort | uniq > readIDs
+        centrifuge -x !{index}/centrifuge_index -q -p !{task.cpus} -U !{reads} | grep !{params.taxID} | cut -f 1 | sort | uniq > readIDs
         seqtk subseq !{reads} readIDs > reads.fq
 
         '''
-}*/
+}
 
 process bwa {
 
 	tag { lane }
 
     input:
-    // set val(lane), file(reads) from readSubsetChannel
-    set val(lane), file(reads) from fastqChannel
+    set val(lane), file(reads) from bwaReadChannel.mix(bwaChannel)
+    //set val(lane), file(reads) from fastqChannel
     file index from bwaIndex.first()
 
     output:
