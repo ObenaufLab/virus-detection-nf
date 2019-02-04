@@ -147,7 +147,7 @@ process centrifugeMatchExtraction {
 
 
     output:
-    set val(lane), file ("reads*fq") into bwaChannel
+    set val(lane), file ("reads*fq") into centrifugeChannel
 
     shell:
 
@@ -177,7 +177,7 @@ process bwa {
 	tag { lane }
 
     input:
-    set val(lane), file(reads) from bwaReadChannel.mix(bwaChannel)
+    set val(lane), file(reads) from bwaReadChannel.mix(centrifugeChannel)
     //set val(lane), file(reads) from fastqChannel
     file index from bwaIndex.first()
 
