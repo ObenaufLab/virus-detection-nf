@@ -204,7 +204,8 @@ process bwa {
 
 process manta {
 
-	tag { lane }
+   tag { lane }
+   errorStrategy 'ignore'
 
     input:
     set val(lane), file(bwa) from bwaChannel
