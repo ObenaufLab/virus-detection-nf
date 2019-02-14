@@ -105,6 +105,8 @@ process bamToFastq {
 
 process starfusion {
 
+    errorStrategy 'ignore'
+
     tag { lane }
 
     input:
