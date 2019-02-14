@@ -31,11 +31,11 @@ def helpMessage() {
     ================================================================
     DESCRIPTION
     Usage:
-    nextflow run obenauflab/virus-detection-nf -r trinity
+    nextflow run obenauflab/virus-detection-nf -r STARfusion
 
     Options:
         --inputDir        	Input directory of bam files.
-        --outputDir        	Output folder for Trinity.
+        --outputDir        	Output folder for STAR-fusion results.
 
     Profiles:
         standard            local execution
@@ -44,7 +44,7 @@ def helpMessage() {
 
     Docker:
     quay.io/biocontainers/samtools:1.9--h8ee4bcc_1
-    trinityrnaseq/trinityrnaseq:2.8.4
+    trinityctat/ctatfusion:1.5.0
 
     Author:
     Tobias Neumann (tobias.neumann@imp.ac.at)
@@ -90,7 +90,7 @@ process bamToFastq {
 
        printf "False"
 
-    	 samtools fastq -@ !{task.cpus} -s !{lane}.fq !{bam}
+    	 samtools fastq -@ !{task.cpus} -0 !{lane}.fq !{bam}
 
     else
 
@@ -103,7 +103,7 @@ process bamToFastq {
     '''
 }
 
-process trinity {
+process starfusion {
 
     tag { lane }
 
@@ -111,27 +111,39 @@ process trinity {
     set val(lane), val(paired), file(reads) from rawReads
 
     output:
-    set val(lane), file("*trinity.fa") into outTrinity
+    set val(lane), file("*finspector.txt"), file("*trinity_fusions.fa"), file("*trinity_fusions.bed.gz") into outTrinity
 
     shell:
     if( paired == 'True' )
       '''
-      Trinity --seqType fq --SS_lib_type RF \
-               --max_memory !{task.memory.toGiga()}G \
-               --left !{reads[0]} \
-               --right !{reads[1]} \
-               --CPU !{task.cpus} --output trinity
+      /usr/local/src/STAR-Fusion/STAR-Fusion \
+               --genome_lib_dir !{params.STARFusionIndex} \
+               --left_fq !{reads[0]} \
+               --right_fq !{reads[1]} \
+               --output_dir star_fusion_outdir \
+               --FusionInspector validate \
+               --denovo_reconstruct \
+               --examine_coding_effect \
+               --CPU !{task.cpus}
 
-      mv trinity/Trinity.fasta !{lane}_trinity.fa
+      mv star_fusion_outdir/FusionInspector-validate/finspector.fusion_predictions.final.abridged.FFPM.annotated.coding_effect !{lane}_finspector.txt
+      mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.fasta !{lane}_trinity_fusions.fa
+      mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.gff3.bed.sorted.bed.gz !{lane}_trinity_fusions.bed.gz
 	    '''
     else
       '''
-      Trinity --seqType fq --SS_lib_type RF \
-               --max_memory !{task.memory.toGiga()}G \
-               --single !{reads} \
-               --CPU !{task.cpus} --output trinity
+      /usr/local/src/STAR-Fusion/STAR-Fusion \
+               --genome_lib_dir !{params.STARFusionIndex} \
+               --left_fq !{reads} \
+               --output_dir star_fusion_outdir \
+               --FusionInspector validate \
+               --denovo_reconstruct \
+               --examine_coding_effect \
+               --CPU !{task.cpus}
 
-      mv trinity/Trinity.fasta !{lane}_trinity.fa
+               mv star_fusion_outdir/FusionInspector-validate/finspector.fusion_predictions.final.abridged.FFPM.annotated.coding_effect !{lane}_finspector.txt
+               mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.fasta !{lane}_trinity_fusions.fa
+               mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.gff3.bed.sorted.bed.gz !{lane}_trinity_fusions.bed.gz
 	    '''
 }
 
