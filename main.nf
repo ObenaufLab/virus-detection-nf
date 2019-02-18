@@ -62,7 +62,7 @@ log.info ""
 log.info " parameters "
 log.info " ======================"
 log.info " input directory          : ${params.inputDir}"
-log.info " output directory         : ${params.output}"
+log.info " output directory         : ${params.outputDir}"
 log.info " ======================"
 log.info ""
 
@@ -113,7 +113,7 @@ process starfusion {
     set val(lane), val(paired), file(reads) from rawReads
 
     output:
-    set val(lane), file("*_STARFusion"), file("*finspector.txt"), file("*trinity_fusions.fa"), file("*trinity_fusions.bed.gz") into outTrinity
+    set val(lane), file("*_STARFusion") into outTrinity
 
     shell:
     if( paired == 'True' )
@@ -129,17 +129,16 @@ process starfusion {
                --CPU !{task.cpus}
 
       mkdir -p !{lane}_STARFusion
-      cp star_fusion_outdir/FusionInspector-validate/finspector.fusion_predictions.final.abridged.FFPM.annotated.coding_effect !{lane}_STARFusion/!{lane}_finspector.txt
-
-       mv star_fusion_outdir/FusionInspector-validate/finspector.fusion_predictions.final.abridged.FFPM.annotated.coding_effect !{lane}_finspector.txt
-       mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.fasta !{lane}_trinity_fusions.fa
-       mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.gff3.bed.sorted.bed.gz !{lane}_trinity_fusions.bed.gz
-       mv star_fusion_outdir/FusionInspector-validate/finspector.fa !{lane}_finspector.fa
-       mv star_fusion_outdir/FusionInspector-validate/finspector.gtf !{lane}_finspector.gtf
-       mv star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam !{lane}_finspector.junction_reads.bam
-       mv star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam.bai !{lane}_finspector.junction_reads.bam.bai
-       mv star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam !{lane}_finspector.spanning_reads.bam
-       mv star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam.bai !{lane}_finspector.spanning_reads.bam.bai
+      cp star_fusion_outdir/FusionInspector-validate/finspector.fusion_predictions.final.abridged.FFPM.annotated.coding_effect !{lane}_STARFusion/finspector.txt
+      cp star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.fasta !{lane}_STARFusion/trinity_fusions.fa
+      cp star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.gff3.bed.sorted.bed.gz !{lane}_STARFusion/trinity_fusions.bed.gz
+      cp star_fusion_outdir/FusionInspector-validate/finspector.fa !{lane}_STARFusion/finspector.fa
+      cp star_fusion_outdir/FusionInspector-validate/finspector.fa.fai !{lane}_STARFusion/finspector.fa.fai
+      cp star_fusion_outdir/FusionInspector-validate/finspector.gtf !{lane}_STARFusion/finspector.gtf
+      cp star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam !{lane}_STARFusion/finspector.junction_reads.bam
+      cp star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam.bai !{lane}_STARFusion/finspector.junction_reads.bam.bai
+      cp star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam !{lane}_STARFusion/finspector.spanning_reads.bam
+      cp star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam.bai !{lane}_STARFusion/finspector.spanning_reads.bam.bai
 	    '''
     else
       '''
@@ -154,16 +153,17 @@ process starfusion {
 
 
 
-       mv star_fusion_outdir/FusionInspector-validate/finspector.fusion_predictions.final.abridged.FFPM.annotated.coding_effect !{lane}_finspector.txt
-       mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.fasta !{lane}_trinity_fusions.fa
-       mv star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.gff3.bed.sorted.bed.gz !{lane}_trinity_fusions.bed.gz
-       mv star_fusion_outdir/FusionInspector-validate/finspector.fa !{lane}_finspector.fa
-       mv star_fusion_outdir/FusionInspector-validate/finspector.gtf !{lane}_finspector.gtf
-       mv star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam !{lane}_finspector.junction_reads.bam
-       mv star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam.bai !{lane}_finspector.junction_reads.bam.bai
-       mv star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam !{lane}_finspector.spanning_reads.bam
-       mv star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam.bai !{lane}_finspector.spanning_reads.bam.bai
-
+      mkdir -p !{lane}_STARFusion
+      cp star_fusion_outdir/FusionInspector-validate/finspector.fusion_predictions.final.abridged.FFPM.annotated.coding_effect !{lane}_STARFusion/finspector.txt
+      cp star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.fasta !{lane}_STARFusion/trinity_fusions.fa
+      cp star_fusion_outdir/FusionInspector-validate/finspector.gmap_trinity_GG.fusions.gff3.bed.sorted.bed.gz !{lane}_STARFusion/trinity_fusions.bed.gz
+      cp star_fusion_outdir/FusionInspector-validate/finspector.fa !{lane}_STARFusion/finspector.fa
+      cp star_fusion_outdir/FusionInspector-validate/finspector.fa.fai !{lane}_STARFusion/finspector.fa.fai
+      cp star_fusion_outdir/FusionInspector-validate/finspector.gtf !{lane}_STARFusion/finspector.gtf
+      cp star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam !{lane}_STARFusion/finspector.junction_reads.bam
+      cp star_fusion_outdir/FusionInspector-validate/finspector.junction_reads.bam.bai !{lane}_STARFusion/finspector.junction_reads.bam.bai
+      cp star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam !{lane}_STARFusion/finspector.spanning_reads.bam
+      cp star_fusion_outdir/FusionInspector-validate/finspector.spanning_reads.bam.bai !{lane}_STARFusion/finspector.spanning_reads.bam.bai
 	    '''
 }
 
