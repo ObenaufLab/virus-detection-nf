@@ -71,14 +71,6 @@ Channel
     .map { file -> tuple( file.baseName, file ) }
     .set { rawBamFiles }
 
-blastxDb = Channel.fromPath( params.blastdbPath )
-
-blastpDb = Channel.fromPath( params.blastdbPath )
-
-pfamDb = Channel.fromPath( params.blastdbPath )
-
-sqlite = Channel.fromPath( params.sqlite )
-
 process bamToFastq {
 
     tag { lane }
