@@ -221,7 +221,7 @@ process hmmscan {
 
     shell:
     '''
-    hmmscan --cpu !{task.cpus} --domtblout !{lane}_TrinotatePFAM.out !{pfamPrefix} !{proteins} > pfam.log
+    hmmscan --cpu !{task.cpus} --domtblout !{lane}_TrinotatePFAM.out !{params.pfamPrefix} !{proteins} > pfam.log
 	  '''
 }
 
