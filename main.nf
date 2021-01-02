@@ -71,6 +71,14 @@ Channel
     .map { file -> tuple( file.baseName, file ) }
     .set { rawBamFiles }
 
+blastxDb = Channel.fromPath( params.blastdbPath )
+
+blastpDb = Channel.fromPath( params.blastdbPath )
+
+pfamDb = Channel.fromPath( params.blastdbPath )
+
+sqlite = Channel.fromPath( params.sqlite )
+
 process bamToFastq {
 
     tag { lane }
@@ -105,13 +113,19 @@ process bamToFastq {
 
 process trinity {
 
+    label 'trinity'
+
     tag { lane }
+
+    publishDir path: "${params.outputDir}/trinity/", mode: 'copy',
+               overwrite: 'true', pattern: "*trinity.fa"
 
     input:
     set val(lane), val(paired), file(reads) from rawReads
 
     output:
-    set val(lane), file("*trinity.fa") into outTrinity
+    set val(lane), file("*trinity.fa") into trinityTransdecoder, trinityBlastx, trinityTrinotate
+    set val(lane), file("*trinity.fa.gene_trans_map") into outTrinityTransMap
 
     shell:
     if( paired == 'True' )
@@ -123,6 +137,8 @@ process trinity {
                --CPU !{task.cpus} --output trinity
 
       mv trinity/Trinity.fasta !{lane}_trinity.fa
+
+      /usr/local/bin/trinityrnaseq/util/support_scripts/get_Trinity_gene_to_trans_map.pl !{lane}_trinity.fa > !{lane}_trinity.fa.gene_trans_map
 	    '''
     else
       '''
@@ -132,7 +148,114 @@ process trinity {
                --CPU !{task.cpus} --output trinity
 
       mv trinity/Trinity.fasta !{lane}_trinity.fa
+
+      /usr/local/bin/trinityrnaseq/util/support_scripts/get_Trinity_gene_to_trans_map.pl !{lane}_trinity.fa > !{lane}_trinity.fa.gene_trans_map
 	    '''
+}
+
+process transdecoder {
+
+    tag { lane }
+
+    input:
+    set val(lane), file(transcripts) from trinityTransdecoder
+
+    output:
+    set val(lane), file("*trinity.fa.transdecoder.pep") into transdecoderBlastp, transdecoderHmmscan, transdecoderTrinotate
+
+    shell:
+    '''
+    TransDecoder.LongOrfs -t !{transcripts}
+    TransDecoder.Predict -t !{transcripts}
+    '''
+}
+
+process blastx {
+
+    label 'trinotate'
+
+    tag { lane }
+
+    input:
+    file(db) from blastxDb.collect()
+    set val(lane), file(transcripts) from trinityBlastx
+
+    output:
+    set val(lane), file("*blastx.outfmt6") into outBlastx
+
+    shell:
+    '''
+    blastx -query !{transcripts} -db uniprot_sprot.pep -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastx.outfmt6
+	  '''
+}
+
+process blastp {
+
+    label 'trinotate'
+
+    tag { lane }
+
+    input:
+    set val(lane), file(proteins) from transdecoderBlastp
+    file(db) from blastpDb.collect()
+
+    output:
+    set val(lane), file("*blastp.outfmt6") into outBlastp
+
+    shell:
+    '''
+    blastp -query !{proteins} -db uniprot_sprot.pep -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastp.outfmt6
+	  '''
+}
+
+process hmmscan {
+
+    label 'trinotate'
+
+    tag { lane }
+
+    input:
+    set val(lane), file(proteins) from transdecoderHmmscan
+    file(db) from pfamDb.collect()
+
+    output:
+    set val(lane), file("*TrinotatePFAM.out") into outHmmScan
+
+    shell:
+    '''
+    hmmscan --cpu !{task.cpus} --domtblout !{lane}_TrinotatePFAM.out Pfam-A.hmm !{proteins} > pfam.log
+	  '''
+}
+
+process trinotatedb {
+
+    label 'trinotate'
+
+    tag { lane }
+
+    publishDir path: "${params.outputDir}/trinotate/", mode: 'copy',
+               overwrite: 'true', pattern: "*trinotate_annotation_report.txt"
+
+    input:
+    set val(lane), file(transcripts) from trinityTrinotate
+    set val(lane), file(transMap) from outTrinityTransMap
+    set val(lane), file(proteins) from transdecoderTrinotate
+    set val(lane), file(blastx) from outBlastx
+    set val(lane), file(blastp) from outBlastp
+    set val(lane), file(hmmscan) from outHmmScan
+    file(sqlite) from sqlite.collect()
+
+    output:
+    set val(lane), file("*trinotate_annotation_report.txt") into outTrinotateDb
+
+    shell:
+    '''
+    Trinotate init --gene_trans_map !{transMap} --transcript_fasta !{transcripts} --transdecoder_pep !{proteins}
+    Trinotate Trinotate.sqlite LOAD_swissprot_blastp !{blastp}
+    Trinotate Trinotate.sqlite LOAD_swissprot_blastx !{blastx}
+    Trinotate Trinotate.sqlite LOAD_pfam !{hmmscan}
+    Trinotate Trinotate.sqlite report > !{lane}_trinotate_annotation_report.txt
+	  '''
 }
 
 workflow.onComplete {
