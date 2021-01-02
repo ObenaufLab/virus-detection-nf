@@ -232,7 +232,6 @@ process trinotatedb {
     set val(lane), file(blastx) from outBlastx
     set val(lane), file(blastp) from outBlastp
     set val(lane), file(hmmscan) from outHmmScan
-    file(sqlite) from sqlite.collect()
 
     output:
     set val(lane), file("*trinotate_annotation_report.txt") into outTrinotateDb
