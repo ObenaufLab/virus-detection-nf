@@ -177,7 +177,6 @@ process blastx {
     tag { lane }
 
     input:
-    file(db) from blastxDb.collect()
     set val(lane), file(transcripts) from trinityBlastx
 
     output:
@@ -185,7 +184,7 @@ process blastx {
 
     shell:
     '''
-    blastx -query !{transcripts} -db uniprot_sprot.pep -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastx.outfmt6
+    blastx -query !{transcripts} -db !{params.blastdbPrefix} -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastx.outfmt6
 	  '''
 }
 
@@ -197,14 +196,13 @@ process blastp {
 
     input:
     set val(lane), file(proteins) from transdecoderBlastp
-    file(db) from blastpDb.collect()
 
     output:
     set val(lane), file("*blastp.outfmt6") into outBlastp
 
     shell:
     '''
-    blastp -query !{proteins} -db uniprot_sprot.pep -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastp.outfmt6
+    blastp -query !{proteins} -db !{params.blastdbPrefix} -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastp.outfmt6
 	  '''
 }
 
@@ -223,7 +221,7 @@ process hmmscan {
 
     shell:
     '''
-    hmmscan --cpu !{task.cpus} --domtblout !{lane}_TrinotatePFAM.out Pfam-A.hmm !{proteins} > pfam.log
+    hmmscan --cpu !{task.cpus} --domtblout !{lane}_TrinotatePFAM.out !{pfamPrefix} !{proteins} > pfam.log
 	  '''
 }
 
