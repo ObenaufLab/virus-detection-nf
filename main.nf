@@ -214,7 +214,6 @@ process hmmscan {
 
     input:
     set val(lane), file(proteins) from transdecoderHmmscan
-    file(db) from pfamDb.collect()
 
     output:
     set val(lane), file("*TrinotatePFAM.out") into outHmmScan
@@ -248,6 +247,7 @@ process trinotatedb {
 
     shell:
     '''
+    cp !{params.sqlite} Trinotate.sqlite
     Trinotate init --gene_trans_map !{transMap} --transcript_fasta !{transcripts} --transdecoder_pep !{proteins}
     Trinotate Trinotate.sqlite LOAD_swissprot_blastp !{blastp}
     Trinotate Trinotate.sqlite LOAD_swissprot_blastx !{blastx}
