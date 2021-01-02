@@ -184,7 +184,7 @@ process blastx {
 
     shell:
     '''
-    blastx -query !{transcripts} -db !{params.blastdbPrefix} -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastx.outfmt6
+    blastx -query !{transcripts} -db !{params.blastdb} -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastx.outfmt6
 	  '''
 }
 
@@ -202,7 +202,7 @@ process blastp {
 
     shell:
     '''
-    blastp -query !{proteins} -db !{params.blastdbPrefix} -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastp.outfmt6
+    blastp -query !{proteins} -db !{params.blastdb} -num_threads !{task.cpus} -max_target_seqs 1 -outfmt 6 -evalue 1e-3 > !{lane}_blastp.outfmt6
 	  '''
 }
 
@@ -220,7 +220,7 @@ process hmmscan {
 
     shell:
     '''
-    hmmscan --cpu !{task.cpus} --domtblout !{lane}_TrinotatePFAM.out !{params.pfamPrefix} !{proteins} > pfam.log
+    hmmscan --cpu !{task.cpus} --domtblout !{lane}_TrinotatePFAM.out !{params.pfamdb} !{proteins} > pfam.log
 	  '''
 }
 
