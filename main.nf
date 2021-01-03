@@ -243,7 +243,7 @@ process trinotatedb {
     Trinotate Trinotate.sqlite LOAD_swissprot_blastp !{blastp}
     Trinotate Trinotate.sqlite LOAD_swissprot_blastx !{blastx}
     Trinotate Trinotate.sqlite LOAD_pfam !{hmmscan}
-    Trinotate Trinotate.sqlite report > !{lane}_trinotate_annotation_report.txt
+    Trinotate Trinotate.sqlite report --incl_pep --incl_trans > !{lane}_trinotate_annotation_report.txt
 	  '''
 }
 
